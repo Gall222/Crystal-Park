@@ -1,12 +1,12 @@
+using UnityEngine;
 using Zenject;
 using Services;
 using Presenters;
 using Views;
 using SO;
 using Models;
-using UnityEngine;
-using System.Collections.Generic;
 using UI;
+using System.Collections.Generic;
 using UniRx;
 using Unity.Cinemachine;
 using UnityEngine.UI;
@@ -15,7 +15,7 @@ namespace Installers
 {
     public class ProjectInstaller : MonoInstaller
     {
-        [Header("Scene References")] 
+        [Header("Scene References")]
         public SettingsSo settings;
         public SettingsPanelView settingsPanelView;
         public Button settingsButton;
@@ -28,7 +28,7 @@ namespace Installers
 
         public override void InstallBindings()
         {
-            // ScriptableObject
+            // ScriptableObjects
             Container.BindInstance(settings).AsSingle();
 
             // Core services
@@ -58,12 +58,12 @@ namespace Installers
             // Presenters
             Container.BindInterfacesAndSelfTo<PlayerPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<CollectorPresenter>().AsSingle().NonLazy();
-            Container.BindInstance(CreateBuildingPresenters()).AsSingle().NonLazy();
+            Container.BindInstance(CreateBuildingPresenters(buildingModels)).AsSingle().NonLazy();
 
-            // CameraPresenter без WithArguments/Resolve
+            // Camera
             Container.Bind<CameraPresenter>().AsSingle().NonLazy();
 
-            // SettingsPresenter
+            // Settings
             Container.Bind<SettingsPresenter>().AsSingle().WithArguments(settingsPanelView, settings).NonLazy();
 
             // Initialize UI
@@ -76,14 +76,14 @@ namespace Installers
                 .AddTo(settingsButton.gameObject);
         }
 
-
-        private List<BuildingPresenter> CreateBuildingPresenters()
+        private List<BuildingPresenter> CreateBuildingPresenters(List<BuildingModel> models)
         {
             var list = new List<BuildingPresenter>();
             for (int i = 0; i < buildingViews.Count; i++)
             {
-                var model = new BuildingModel(buildingViews[i].ResourceName);
-                list.Add(new BuildingPresenter(model, settings, buildingViews[i]));
+                var model = models[i];
+                var view = buildingViews[i];
+                list.Add(new BuildingPresenter(model, settings, view));
             }
             return list;
         }

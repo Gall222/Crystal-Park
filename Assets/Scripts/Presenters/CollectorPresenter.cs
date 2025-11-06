@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using UniRx;
 using Models;
-using UI;
+using Services;
 using SO;
-using UnityEngine;
+using UniRx;
+using UI;
 using Views;
+using UnityEngine;
 
 namespace Presenters
 {
@@ -51,24 +52,23 @@ namespace Presenters
 
         private IEnumerator CollectRoutine(BuildingPresenter building)
         {
-            _ui.OnPopupShow.OnNext(Unit.Default); // Показываем панель
+            _ui.OnPopupShow.OnNext(Unit.Default);
 
             string resName = building.Model.ResourceName;
 
-            while (_playerView.IsCollecting) // Пока игрок на месте
+            while (_playerView.IsCollecting)
             {
-                // Если есть ресурсы на здании и место у игрока
                 if (building.Model.ResourceAmount > 0 &&
                     _player.Model.TryAddResource(resName, 1, _settings.maxResourcePerType))
                 {
-                    building.Collect(1); // забираем 1 ресурс
+                    building.Collect(1);
                     _ui.OnResourceChanged.OnNext((_player.Model.Resources, resName));
                 }
 
                 yield return new WaitForSeconds(_settings.resourceAddDelay);
             }
 
-            _ui.OnPopupHide.OnNext(Unit.Default); // Скрываем панель, когда игрок ушёл
+            _ui.OnPopupHide.OnNext(Unit.Default);
             _collectRoutine = null;
         }
 

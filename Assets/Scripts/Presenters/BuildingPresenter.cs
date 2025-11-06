@@ -1,7 +1,7 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using Models;
-using TMPro;
 using SO;
 using Views;
 
@@ -22,7 +22,6 @@ namespace Presenters
             _settings = settings;
             View = view;
 
-            // Получаем текст меш над зданием
             _floatingText = view.GetComponentInChildren<TMP_Text>();
             UpdateFloatingText();
 
@@ -45,15 +44,13 @@ namespace Presenters
             }
         }
 
-        // Постепенный сбор игроком (1 единица)
+
         public int Collect(int amount = 1)
         {
             if (Model.ResourceAmount <= 0)
                 return 0;
 
-            int collected = Mathf.Min(amount, Model.ResourceAmount);
-            Model.Collect(collected);
-
+            int collected = Model.Collect(amount);
             UpdateFloatingText();
             return collected;
         }

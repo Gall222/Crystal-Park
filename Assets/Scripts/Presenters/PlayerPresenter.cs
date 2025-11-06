@@ -1,10 +1,10 @@
-using System.Collections;
-using UniRx;
-using UnityEngine;
-using Services;
-using Models;
-using Views;
 using System;
+using System.Collections;
+using Models;
+using Services;
+using UniRx;
+using Views;
+using UnityEngine;
 
 namespace Presenters
 {
@@ -24,7 +24,6 @@ namespace Presenters
             _inputService = inputService;
             Model = model;
 
-            // Подписка на клики
             _inputService.OnClick.Subscribe(OnClick).AddTo(_view);
         }
 
