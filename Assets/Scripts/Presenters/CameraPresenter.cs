@@ -1,7 +1,6 @@
 using UnityEngine;
 using UI;
 using UniRx;
-using Services;
 using Unity.Cinemachine;
 using Zenject;
 
@@ -28,8 +27,8 @@ namespace Presenters
 
             if (_vcam.Follow != null)
                 _originalFollow = _vcam.Follow;
-
-            // Подписка на кнопку движения
+            
+            //Screen move button subscribe
             _screenMoveButton.OnPointerDownObservable.Subscribe(OnPointerDown).AddTo(_vcam.gameObject);
             _screenMoveButton.OnPointerUpObservable.Subscribe(_ => OnPointerUp()).AddTo(_vcam.gameObject);
 
@@ -53,7 +52,6 @@ namespace Presenters
         {
             if (_isDragging)
             {
-                // Берем текущую позицию мыши
                 Vector2 currentPos = Vector2.zero;
                 if (UnityEngine.Input.mousePresent)
                     currentPos = UnityEngine.Input.mousePosition;
@@ -68,7 +66,6 @@ namespace Presenters
             }
             else if (_vcam.Follow != null)
             {
-                // Лерп к игроку, когда не драг
                 var pos = _vcam.transform.position;
                 _vcam.transform.position = Vector3.Lerp(pos,
                     new Vector3(_playerTransform.position.x, pos.y, _playerTransform.position.z),

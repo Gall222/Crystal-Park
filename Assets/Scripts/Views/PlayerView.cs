@@ -6,31 +6,30 @@ namespace Views
     [RequireComponent(typeof(NavMeshAgent))]
     public class PlayerView : MonoBehaviour
     {
-        public NavMeshAgent Agent { get; private set; }
+        private string _isMoving = "isMoving";
+        private string _isCollecting = "isCollecting";
         private Animator _animator;
-
+        public NavMeshAgent Agent { get; private set; }
         public bool IsCollecting { get; private set; }
 
         [Header("Rotation settings")]
-        [SerializeField] private float rotationSpeed = 8f; // скорость поворота корпуса
+        [SerializeField] private float rotationSpeed = 8f;
 
         void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
             _animator = GetComponentInChildren<Animator>();
-            Agent.updateRotation = false; // мы будем вращать вручную
+            Agent.updateRotation = false;
         }
 
         void Update()
         {
-            // Если агент на NavMesh — обновляем состояние анимации
             if (Agent.isOnNavMesh)
             {
                 bool isMoving = Agent.velocity.magnitude > 0.1f && !Agent.pathPending;
 
-                _animator.SetBool("isMoving", isMoving);
-
-                // Поворот корпуса по направлению движения
+                _animator.SetBool(_isMoving, isMoving);
+                
                 if (isMoving)
                 {
                     Vector3 dir = Agent.velocity.normalized;
@@ -46,7 +45,7 @@ namespace Views
         public void MoveTo(Vector3 point)
         {
             IsCollecting = false;
-            _animator.SetBool("isCollecting", false);
+            _animator.SetBool(_isCollecting, false);
             
             if (!Agent.isOnNavMesh)
             {
@@ -65,8 +64,8 @@ namespace Views
             Agent.isStopped = true;
             IsCollecting = true;
 
-            _animator.SetBool("isMoving", false);
-            _animator.SetBool("isCollecting", true);
+            _animator.SetBool(_isMoving, false);
+            _animator.SetBool(_isCollecting, true);
         }
 
         public void StopMoving()
@@ -74,7 +73,7 @@ namespace Views
             if (!Agent.isOnNavMesh) return;
 
             Agent.isStopped = true;
-            _animator.SetBool("isMoving", false);
+            _animator.SetBool(_isMoving, false);
         }
 
         public bool HasReached(Vector3 target, float threshold = 0.5f)

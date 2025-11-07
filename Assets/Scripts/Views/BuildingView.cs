@@ -1,5 +1,4 @@
 using UnityEngine;
-using TMPro;
 
 namespace Views
 {
@@ -10,8 +9,7 @@ namespace Views
 
         public string ResourceName => resourceName;
         public Transform CollectPoint => collectPoint;
-
-        // Можно использовать триггер, чтобы определить приближение игрока
+        
         private void OnDrawGizmosSelected()
         {
             if (collectPoint)

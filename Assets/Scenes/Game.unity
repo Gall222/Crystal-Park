@@ -3188,6 +3188,7 @@ GameObject:
   - component: {fileID: 1476858764}
   - component: {fileID: 1476858763}
   - component: {fileID: 1476858765}
+  - component: {fileID: 1476858766}
   m_Layer: 0
   m_Name: Installer
   m_TagString: Untagged
@@ -3207,7 +3208,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de1e3c40faff4d6a8cb9b06db1eea12a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: d87746bfaf1ef6e4daf3ba7fcf5cbad6, type: 2}
   settingsPanelView: {fileID: 1859717664}
   settingsButton: {fileID: 460937089}
   playerView: {fileID: 2966660293396211635}
@@ -3221,6 +3221,8 @@ MonoBehaviour:
   - {fileID: 597519995}
   - {fileID: 26559999}
   screenMoveButton: {fileID: 1432718888}
+  settings: {fileID: 11400000, guid: d87746bfaf1ef6e4daf3ba7fcf5cbad6, type: 2}
+  saveData: {fileID: 11400000, guid: 4f331923b65d13049953263ca14da7d2, type: 2}
 --- !u!4 &1476858764
 Transform:
   m_ObjectHideFlags: 0
@@ -3333,6 +3335,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1476858766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476858762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f01042ea720f4e449f6eec6b996824dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1489306288
 GameObject:
   m_ObjectHideFlags: 0

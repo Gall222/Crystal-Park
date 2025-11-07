@@ -6,17 +6,19 @@ namespace Models
     public class BuildingModel
     {
         public string ResourceName { get; private set; }
-        public int ResourceAmount { get; private set; }
+        public int ResourceAmount { get; set; }
+        public int MaxCapacity { get; private set; }
 
-        public BuildingModel(string resourceName)
+        public BuildingModel(string name, int maxCapacity)
         {
-            ResourceName = resourceName;
+            ResourceName = name;
+            MaxCapacity = maxCapacity;
             ResourceAmount = 0;
         }
 
-        public void Produce(int amount, int max)
+        public void Produce(int amount)
         {
-            ResourceAmount = Mathf.Min(ResourceAmount + amount, max);
+            ResourceAmount = Mathf.Min(ResourceAmount + amount, MaxCapacity);
         }
 
         public int Collect(int requested)
@@ -25,7 +27,5 @@ namespace Models
             ResourceAmount -= collected;
             return collected;
         }
-
-        public bool HasResources => ResourceAmount > 0;
     }
 }

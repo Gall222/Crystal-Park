@@ -1,5 +1,3 @@
-// Views/SettingsPanelView.cs
-
 using System;
 using UnityEngine;
 using UnityEngine.UI;

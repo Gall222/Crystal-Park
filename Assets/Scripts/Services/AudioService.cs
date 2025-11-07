@@ -1,4 +1,3 @@
-// Services/AudioService.cs
 using UnityEngine;
 using SO;
 using UniRx;
@@ -12,7 +11,6 @@ namespace Services
         public AudioService(SettingsSo settings)
         {
             _settings = settings;
-            // Подписка на изменения громкости
             Observable.EveryUpdate()
                 .Subscribe(_ => AudioListener.volume = _settings.volume)
                 .AddTo(GameObject.FindObjectOfType<AudioListener>()); // автоматически очистит подписку при уничтожении

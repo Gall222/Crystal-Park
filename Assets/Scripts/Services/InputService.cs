@@ -35,18 +35,6 @@ namespace Services
 
         private void TryClick(InputAction.CallbackContext ctx)
         {
-            // Игнорируем, если курсор/палец над UI
-            if (Mouse.current != null && EventSystem.current.IsPointerOverGameObject())
-                return;
-
-            if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
-            {
-                var touch = Touchscreen.current.touches[0];
-                int fingerId = touch.touchId.ReadValue(); // <-- читаем int из IntegerControl
-                if (EventSystem.current.IsPointerOverGameObject(fingerId))
-                    return;
-            }
-
             Vector2 screenPos = Vector2.zero;
 
             if (Mouse.current != null)
@@ -56,6 +44,25 @@ namespace Services
             else
                 return;
 
+            // Check UI by RaycastAll
+            if (EventSystem.current != null)
+            {
+                var pointer = new PointerEventData(EventSystem.current)
+                {
+                    position = screenPos
+                };
+
+                var results = new System.Collections.Generic.List<RaycastResult>();
+                EventSystem.current.RaycastAll(pointer, results);
+
+                if (results.Count > 0)
+                {
+                    // UI clicked, ignore plauer move
+                    return;
+                }
+            }
+
+            // Player move click
             Ray ray = Camera.main.ScreenPointToRay(screenPos);
             if (!Physics.Raycast(ray, out RaycastHit hit)) return;
 
@@ -68,7 +75,6 @@ namespace Services
 
             OnClick.OnNext(data);
         }
-
 
         private void StartDrag(InputAction.CallbackContext ctx)
         {

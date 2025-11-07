@@ -1,73 +1,91 @@
-using System;
 using System.Collections.Generic;
-using Presenters;
-using SO;
 using UnityEngine;
+using SO;
 
-namespace Services
+public class SaveService
 {
-    [Serializable]
-    public class SaveEntry
+    private readonly SaveData _saveData;
+
+    public SaveService(SaveData saveData)
     {
-        public string name;
-        public int amount;
+        _saveData = saveData;
     }
 
-    [Serializable]
-    public class SaveData
+    public void Save(PlayerModel player, List<BuildingPresenter> buildings)
     {
-        public List<SaveEntry> playerResources = new();
-        public List<SaveEntry> buildingResources = new(); // <-- добавлено
-        public float masterVolume;
-    }
+        _saveData.BuildingResources.Clear();
+        _saveData.PlayerResources.Clear();
 
-    public class SaveService
-    {
-        private const string SAVE_KEY = "game_save_v1";
-
-        public void Save(ResourceService resourceService, SettingsSo settings, List<BuildingPresenter> buildings)
+        // --- Player ---
+        foreach (var kvp in player.Resources)
         {
-            var data = new SaveData();
-
-            // Игрок
-            foreach (var res in resourceService.Resources)
-                data.playerResources.Add(new SaveEntry { name = res.resourceName, amount = res.amount });
-
-            // Здания
-            foreach (var building in buildings)
-                data.buildingResources.Add(new SaveEntry { name = building.Model.ResourceName, amount = building.Model.ResourceAmount });
-
-            data.masterVolume = settings.volume;
-
-            PlayerPrefs.SetString(SAVE_KEY, JsonUtility.ToJson(data));
-            PlayerPrefs.Save();
-            Debug.Log("Game saved");
-        }
-
-
-        public void Load(ResourceService resourceService, SettingsSo settings, List<BuildingPresenter> buildings)
-        {
-            if (!PlayerPrefs.HasKey(SAVE_KEY)) return;
-
-            var json = PlayerPrefs.GetString(SAVE_KEY);
-            var data = JsonUtility.FromJson<SaveData>(json);
-
-            // Игрок
-            resourceService.ResetAll();
-            foreach (var e in data.playerResources)
-                resourceService.AddResource(e.name, e.amount);
-
-            // Здания
-            foreach (var e in data.buildingResources)
+            _saveData.PlayerResources.Add(new SaveData.PlayerSave
             {
-                var building = buildings.Find(b => b.Model.ResourceName == e.name);
-                if (building != null)
-                    building.Model.Produce(e.amount, settings.maxCapacity); // ставим текущее количество
-            }
-
-            settings.volume = data.masterVolume;
-            Debug.Log("Game loaded");
+                resourceName = kvp.Key,
+                amount = kvp.Value
+            });
         }
 
+        // --- Buildings ---
+        foreach (var building in buildings)
+        {
+            _saveData.BuildingResources.Add(new SaveData.BuildingSave
+            {
+                buildingName = building.Name,
+                resourceAmount = building.ResourceAmount
+            });
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(_saveData);
+        UnityEditor.AssetDatabase.SaveAssets();
+#endif
+
+        Debug.Log("✅ Game saved to ScriptableObject!");
+    }
+
+    public void Load(PlayerModel player, List<BuildingPresenter> buildings)
+    {
+        player.Resources.Clear();
+
+        // --- Player ---
+        foreach (var p in _saveData.PlayerResources)
+        {
+            player.Resources[p.resourceName] = p.amount;
+            Debug.Log($"Loaded player resource: {p.resourceName} = {p.amount}");
+        }
+
+        // --- Buildings ---
+        foreach (var b in _saveData.BuildingResources)
+        {
+            var building = buildings.Find(x => x.Name == b.buildingName);
+            if (building != null)
+            {
+                building.SetResourceAmount(b.resourceAmount);
+                building.RefreshView();
+            }
+        }
+
+        Debug.Log("✅ Game loaded from ScriptableObject!");
+    }
+
+    public void ResetAll(PlayerModel player, List<BuildingPresenter> buildings)
+    {
+        player.Resources.Clear();
+        _saveData.PlayerResources.Clear();
+        _saveData.BuildingResources.Clear();
+
+        foreach (var b in buildings)
+        {
+            b.SetResourceAmount(0);
+            b.RefreshView();
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(_saveData);
+        UnityEditor.AssetDatabase.SaveAssets();
+#endif
+
+        Debug.Log("🔄 All data reset.");
     }
 }

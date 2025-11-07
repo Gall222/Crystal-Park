@@ -8,16 +8,18 @@ namespace Views
 {
     public class ResourcesPanelView : MonoBehaviour
     {
+        private string _show = "Show";
+        private string _hide = "Hide";
+        
         [Header("UI Elements")]
-        [SerializeField] private TMP_Text[] resourceTexts; // 5 штук, один для каждого ресурса
-        [SerializeField] private Animator animator; // для анимации показа/скрытия панели
+        [SerializeField] private TMP_Text[] resourceTexts;
+        [SerializeField] private Animator animator;
 
         private Dictionary<string, TMP_Text> _labels = new();
         private CompositeDisposable _disposables = new();
-
+        
         public void Initialize(UIEventBus eventBus)
         {
-            // Подписываемся на события
             eventBus.OnPopupShow.Subscribe(_ => Show()).AddTo(_disposables);
             eventBus.OnPopupHide.Subscribe(_ => Hide()).AddTo(_disposables);
             eventBus.OnResourceChanged.Subscribe(data => UpdateUI(data.resources)).AddTo(_disposables);
@@ -41,8 +43,8 @@ namespace Views
             }
         }
 
-        public void Show() => animator.SetTrigger("Show");
-        public void Hide() => animator.SetTrigger("Hide");
+        public void Show() => animator.SetTrigger(_show);
+        public void Hide() => animator.SetTrigger(_hide);
 
         private void OnDestroy()
         {

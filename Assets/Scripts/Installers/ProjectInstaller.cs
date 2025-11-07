@@ -1,22 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
+using UniRx;
+using Views;
 using Services;
 using Presenters;
-using Views;
 using SO;
-using Models;
 using UI;
-using System.Collections.Generic;
-using UniRx;
 using Unity.Cinemachine;
-using UnityEngine.UI;
 
 namespace Installers
 {
     public class ProjectInstaller : MonoInstaller
     {
         [Header("Scene References")]
-        public SettingsSo settings;
         public SettingsPanelView settingsPanelView;
         public Button settingsButton;
         public PlayerView playerView;
@@ -26,21 +24,33 @@ namespace Installers
         public List<BuildingView> buildingViews;
         public ScreenMoveButtonView screenMoveButton;
 
+        [Header("ScriptableObjects")]
+        public SettingsSo settings;
+        public SaveData saveData;
+
         public override void InstallBindings()
         {
-            // ScriptableObjects
+            // --- ScriptableObjects ---
             Container.BindInstance(settings).AsSingle();
+            Container.BindInstance(saveData).AsSingle();
 
-            // Core services
+            // --- Core Services ---
             Container.Bind<ResourceService>().AsSingle().NonLazy();
             Container.Bind<SaveService>().AsSingle().NonLazy();
             Container.Bind<AudioService>().AsSingle().NonLazy();
             Container.Bind<UIEventBus>().AsSingle().NonLazy();
 
-            // Input
-            Container.Bind<InputService>().AsSingle().WithArguments(new PlayerInputSystem()).NonLazy();
+            // --- Input ---
+            var playerInput = new PlayerInputSystem();
+            Container.Bind<InputService>().AsSingle().WithArguments(playerInput).NonLazy();
 
-            // Views
+            // --- Views ---
+            if (playerView == null || resourcesPanelView == null || settingsPanelView == null ||
+                screenMoveButton == null || playerTransform == null || vcam == null)
+            {
+                Debug.LogError("ProjectInstaller: One or more scene references are not assigned!");
+            }
+
             Container.BindInstance(playerView);
             Container.BindInstance(resourcesPanelView);
             Container.BindInstance(settingsPanelView);
@@ -48,42 +58,61 @@ namespace Installers
             Container.BindInstance(playerTransform);
             Container.BindInstance(vcam);
 
-            // Models
-            Container.Bind<PlayerModel>().AsSingle();
-            var buildingModels = new List<BuildingModel>();
-            foreach (var bv in buildingViews)
-                buildingModels.Add(new BuildingModel(bv.ResourceName));
-            Container.BindInstance(buildingModels).AsSingle();
+            // --- Models ---
+            var playerModel = new PlayerModel();
+            Container.BindInstance(playerModel).AsSingle();
 
-            // Presenters
+            // --- Create Buildings ---
+            var buildingPresenters = CreateBuildingPresenters();
+            Container.BindInstance(buildingPresenters).AsSingle().NonLazy();
+
+            // --- Presenters ---
             Container.BindInterfacesAndSelfTo<PlayerPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<CollectorPresenter>().AsSingle().NonLazy();
-            Container.BindInstance(CreateBuildingPresenters(buildingModels)).AsSingle().NonLazy();
-
-            // Camera
             Container.Bind<CameraPresenter>().AsSingle().NonLazy();
-
-            // Settings
             Container.Bind<SettingsPresenter>().AsSingle().WithArguments(settingsPanelView, settings).NonLazy();
 
-            // Initialize UI
+            // --- Initialize UI ---
             var uiBus = Container.Resolve<UIEventBus>();
             resourcesPanelView.Initialize(uiBus);
 
-            // Settings button
+            // --- Settings button ---
             settingsButton.onClick.AsObservable()
                 .Subscribe(_ => Container.Resolve<SettingsPresenter>().ShowPanel())
                 .AddTo(settingsButton.gameObject);
+
+            // --- Load / Reset Save ---
+            var saveService = Container.Resolve<SaveService>();
+            bool hasAnySave = saveData.PlayerResources.Count > 0 || saveData.BuildingResources.Count > 0;
+
+            if (hasAnySave)
+            {
+                Debug.Log("Loading existing save...");
+                saveService.Load(playerModel, buildingPresenters);
+            }
+            else
+            {
+                Debug.Log("No save found. Creating new data...");
+                saveService.ResetAll(playerModel, buildingPresenters);
+            }
+
+            // --- Start production after loading ---
+            foreach (var building in buildingPresenters)
+                building.StartProduction();
         }
 
-        private List<BuildingPresenter> CreateBuildingPresenters(List<BuildingModel> models)
+        private List<BuildingPresenter> CreateBuildingPresenters()
         {
             var list = new List<BuildingPresenter>();
-            for (int i = 0; i < buildingViews.Count; i++)
+            foreach (var view in buildingViews)
             {
-                var model = models[i];
-                var view = buildingViews[i];
-                list.Add(new BuildingPresenter(model, settings, view));
+                var data = ScriptableObject.CreateInstance<BuildingData>();
+                data.buildingName = view.ResourceName;
+                data.resourceAmount = 0;
+                data.maxCapacity = settings.maxCapacity;
+
+                var presenter = new BuildingPresenter(data, view, this);
+                list.Add(presenter);
             }
             return list;
         }

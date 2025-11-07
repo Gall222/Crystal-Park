@@ -1,5 +1,3 @@
-// Presenters/SettingsPresenter.cs
-using Services;
 using Views;
 using SO;
 using UniRx;
@@ -17,11 +15,8 @@ namespace Presenters
             _settings = settings;
 
             _view.Initialize();
-
-            // Устанавливаем слайдер на текущее значение
+            
             _view.SetSliderValue(_settings.volume);
-
-            // Изменяем значение в SO при движении слайдера
             _view.OnSliderChanged()
                 .Subscribe(val => _settings.volume = val)
                 .AddTo(_view);

@@ -1,64 +1,77 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using Models;
-using SO;
 using Views;
 
-namespace Presenters
+public class BuildingPresenter
 {
-    public class BuildingPresenter
+    public BuildingData Data { get; private set; }
+    public BuildingView View { get; private set; }
+
+    private TMP_Text _floatingText;
+    private Coroutine _produceRoutine;
+    private MonoBehaviour _coroutineOwner;
+
+    private float _productionInterval = 3f;
+    private int _productionPerCycle = 1;
+
+    public BuildingPresenter(BuildingData data, BuildingView view, MonoBehaviour coroutineOwner)
     {
-        public BuildingModel Model { get; private set; }
-        public BuildingView View { get; private set; }
+        Data = data;
+        View = view;
+        _coroutineOwner = coroutineOwner;
 
-        private SettingsSo _settings;
-        private Coroutine _produceRoutine;
-        private TMP_Text _floatingText;
+        _floatingText = view.GetComponentInChildren<TMP_Text>();
+        UpdateFloatingText();
+    }
 
-        public BuildingPresenter(BuildingModel model, SettingsSo settings, BuildingView view)
+    public void StartProduction()
+    {
+        if (_coroutineOwner != null)
         {
-            Model = model;
-            _settings = settings;
-            View = view;
+            if (_produceRoutine != null)
+                _coroutineOwner.StopCoroutine(_produceRoutine);
 
-            _floatingText = view.GetComponentInChildren<TMP_Text>();
-            UpdateFloatingText();
-
-            StartProduction();
-        }
-
-        private void StartProduction()
-        {
-            _produceRoutine = View.StartCoroutine(ProduceCoroutine());
-        }
-
-        private IEnumerator ProduceCoroutine()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(_settings.productionInterval);
-
-                Model.Produce(_settings.productionPerCycle, _settings.maxCapacity);
-                UpdateFloatingText();
-            }
-        }
-
-
-        public int Collect(int amount = 1)
-        {
-            if (Model.ResourceAmount <= 0)
-                return 0;
-
-            int collected = Model.Collect(amount);
-            UpdateFloatingText();
-            return collected;
-        }
-
-        private void UpdateFloatingText()
-        {
-            if (_floatingText != null)
-                _floatingText.text = Model.ResourceAmount.ToString();
+            _produceRoutine = _coroutineOwner.StartCoroutine(ProduceCoroutine());
         }
     }
+
+    private IEnumerator ProduceCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(_productionInterval);
+            Data.resourceAmount = Mathf.Min(Data.resourceAmount + _productionPerCycle, Data.maxCapacity);
+            UpdateFloatingText();
+        }
+    }
+
+    public int Collect(int amount = 1)
+    {
+        if (Data.resourceAmount <= 0) return 0;
+        int collected = Mathf.Min(amount, Data.resourceAmount);
+        Data.resourceAmount -= collected;
+        UpdateFloatingText();
+        return collected;
+    }
+
+    private void UpdateFloatingText()
+    {
+        if (_floatingText != null)
+            _floatingText.text = Data.resourceAmount.ToString();
+    }
+    
+    public void SetResourceAmount(int amount)
+    {
+        Data.resourceAmount = Mathf.Clamp(amount, 0, Data.maxCapacity);
+    }
+
+    public void RefreshView()
+    {
+        if (_floatingText != null)
+            _floatingText.text = ResourceAmount.ToString();
+    }
+
+    public string Name => Data.buildingName;
+    public int ResourceAmount => Data.resourceAmount;
 }
