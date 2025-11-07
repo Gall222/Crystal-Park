@@ -50,12 +50,10 @@ public class CollectorPresenter
 
     private IEnumerator CollectRoutine(BuildingPresenter building)
     {
-        // Show res panel
         _ui.OnPopupShow.OnNext(Unit.Default);
-
         string resourceName = building.Data.buildingName;
 
-        while (_playerView.IsCollecting)
+        while (_player.Model.IsCollecting)
         {
             if (building.Data.resourceAmount > 0 &&
                 _player.Model.TryAddResource(resourceName, 1, _settings.maxResourcePerType))
@@ -67,7 +65,6 @@ public class CollectorPresenter
             yield return new WaitForSeconds(_settings.resourceAddDelay);
         }
 
-        // Hide panel
         _ui.OnPopupHide.OnNext(Unit.Default);
         _collectRoutine = null;
     }

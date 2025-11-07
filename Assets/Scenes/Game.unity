@@ -4257,6 +4257,10 @@ PrefabInstance:
       propertyPath: m_Speed
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: -2333319731817687715, guid: 2d6c8edf633c26444a5f26feb2acad29, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 2966660293396211640}
     - target: {fileID: 67846447990650429, guid: 2d6c8edf633c26444a5f26feb2acad29, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 20.478695
@@ -4984,6 +4988,11 @@ CapsuleCollider:
   m_Height: 2.4719758
   m_Direction: 1
   m_Center: {x: 0, y: 0.7359869, z: 0}
+--- !u!95 &2966660293396211640 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1349464515147726162, guid: 2d6c8edf633c26444a5f26feb2acad29, type: 3}
+  m_PrefabInstance: {fileID: 2966660293396211633}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5474092578504424009
 PrefabInstance:
   m_ObjectHideFlags: 0
